@@ -1,0 +1,154 @@
+{
+    "obs": [
+        {
+            "id": "1ed0f937-3f63-4f6a-a680-1b4b4ef24fb9",
+            "modelId": "AudioSet",
+            "audioUri": "https://livemlaudiospecstorage.blob.core.windows.net/audiowavs/rpi_orcasound_lab_2020_09_27_21_15_03_PDT.wav",
+            "imageUri": "https://livemlaudiospecstorage.blob.core.windows.net/spectrogramspng/rpi_orcasound_lab_2020_09_27_21_15_03_PDT.png",
+            "reviewed": true,
+            "timestamp": "2020-09-28T04:15:03.495901Z",
+            "whaleFoundConfidence": 80.18461538461537,
+            "location": {
+                "id": "rpi_orcasound_lab",
+                "name": "Haro Strait",
+                "longitude": -123.2166658,
+                "latitude": 48.5499978
+            },
+            "source_guid": "rpi_orcasound_lab",
+            "predictions": [
+                {
+                    "id": 0,
+                    "startTime": 2.5,
+                    "duration": 2.5,
+                    "confidence": 0.914
+                },
+                {
+                    "id": 1,
+                    "startTime": 7.5,
+                    "duration": 2.5,
+                    "confidence": 0.624
+                },
+                {
+                    "id": 2,
+                    "startTime": 12.5,
+                    "duration": 2.5,
+                    "confidence": 0.869
+                },
+                {
+                    "id": 3,
+                    "startTime": 15,
+                    "duration": 2.5,
+                    "confidence": 0.918
+                },
+                {
+                    "id": 4,
+                    "startTime": 17.5,
+                    "duration": 2.5,
+                    "confidence": 0.835
+                },
+                {
+                    "id": 5,
+                    "startTime": 20,
+                    "duration": 2.5,
+                    "confidence": 0.946
+                },
+                {
+                    "id": 6,
+                    "startTime": 22.5,
+                    "duration": 2.5,
+                    "confidence": 0.761
+                },
+                {
+                    "id": 7,
+                    "startTime": 25,
+                    "duration": 2.5,
+                    "confidence": 0.818
+                },
+                {
+                    "id": 8,
+                    "startTime": 35,
+                    "duration": 2.5,
+                    "confidence": 0.659
+                },
+                {
+                    "id": 9,
+                    "startTime": 37.5,
+                    "duration": 2.5,
+                    "confidence": 0.817
+                },
+                {
+                    "id": 10,
+                    "startTime": 40,
+                    "duration": 2.5,
+                    "confidence": 0.728
+                },
+                {
+                    "id": 11,
+                    "startTime": 42.5,
+                    "duration": 2.5,
+                    "confidence": 0.644
+                },
+                {
+                    "id": 12,
+                    "startTime": 57.5,
+                    "duration": 2.5,
+                    "confidence": 0.891
+                }
+            ],
+            "_rid": "cp0tAOsNIHdjAAAAAAAAAA==",
+            "_self": "dbs/cp0tAA==/colls/cp0tAOsNIHc=/docs/cp0tAOsNIHdjAAAAAAAAAA==/",
+            "_etag": "\"03006609-0000-0800-0000-5f71a9270000\"",
+            "_attachments": "attachments/",
+            "SRKWFound": "no",
+            "comments": "squeaks sounded more like something rubbing against hydrophone than whale calls",
+            "dateModerated": "2020-09-28T09:13:10Z",
+            "moderator": "John Smith",
+            "_ts": 1601284391
+        },
+        {
+            "id": "1509ed6a-1b4c-4122-9b90-f012f117c620",
+            "modelId": "AudioSet",
+            "audioUri": "https://livemlaudiospecstorage.blob.core.windows.net/audiowavs/rpi_orcasound_lab_2020_09_29_04_13_02_PDT.wav",
+            "imageUri": "https://livemlaudiospecstorage.blob.core.windows.net/spectrogramspng/rpi_orcasound_lab_2020_09_29_04_13_02_PDT.png",
+            "reviewed": true,
+            "timestamp": "2020-09-29T11:13:02.872451Z",
+            "whaleFoundConfidence": 67.2,
+            "location": {
+                "id": "rpi_orcasound_lab",
+                "name": "Haro Strait",
+                "longitude": -123.2166658,
+                "latitude": 48.5499978
+            },
+            "source_guid": "rpi_orcasound_lab",
+            "predictions": [
+                {
+                    "id": 0,
+                    "startTime": 25,
+                    "duration": 2.5,
+                    "confidence": 0.716
+                },
+                {
+                    "id": 1,
+                    "startTime": 30,
+                    "duration": 2.5,
+                    "confidence": 0.602
+                },
+                {
+                    "id": 2,
+                    "startTime": 35,
+                    "duration": 2.5,
+                    "confidence": 0.698
+                }
+            ],
+            "_rid": "cp0tAOsNIHdkAAAAAAAAAA==",
+            "_self": "dbs/cp0tAA==/colls/cp0tAOsNIHc=/docs/cp0tAOsNIHdkAAAAAAAAAA==/",
+            "_etag": "\"00008e1f-0000-0800-0000-5f732b8a0000\"",
+            "_attachments": "attachments/",
+            "SRKWFound": "no",
+            "comments": "squeaks and water slosh, but no whale sounds",
+            "dateModerated": "2020-09-29T12:41:45Z",
+            "moderator": "John Smith",
+            "_ts": 1601383306
+        }
+    ]
+}

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <!--<svg style="width:500px;height:500px;border:1px lightgray solid;"></svg>-->
+</body>
+<script>
+    /*d3.select("body")
+        .selectAll('p').style("color", "pink")*/
+
+    /*
+d3.select("body")
+    .append("svg")
+    .attr("width", 500)
+    .attr("height", 500)
+
+d3.select("svg").append("line")
+    .attr("x1", 20)
+    .attr("y1", 20)
+    .attr("x2", 400)
+    .attr("y2", 400)
+    .style("stroke", "black")
+    .style("stroke-width", "2px")
+
+d3.select("svg")
+    .append("circle")
+    .attr("r", 30)
+    .attr("cx", 40)
+    .attr("cy", 40)
+    .attr("fill", "blue")
+    .transition().delay(1000).style("opacity", 0.75)
+
+*/
+    /*
+    d3.json("test.JSON")
+        .then(data => console.log(data));*/
+    //d3.csv("cities.csv", data => console.log(data));
+
+    //d3.json("tweets.json", data => console.log(data.tweets));
+    //console.log("hi")
+
+    //jsonObj = { "name": 'Trang', "age": "26" }
+    //d3.json(jsonObj, (data) => console.log(data))
+    d3.json("test.json").then(function (data) {
+        d3.select("body").selectAll("div.observation")
+            .data(data.obs)
+            .enter()
+            .append("div")
+            .attr("class", "observation")
+            .html((data) => data.id)
+    });
+
+    let newRamp = d3.scaleLinear().domain([500, 10000]).range([0, 500]);
+    //console.log(newRamp(1000000));
+
+
+
+
+    /*
+d3.csv("cities.csv", (error, data) => {
+    if (error) {
+        console.error(error)
+    }
+    else {
+        dataViz(data)
+    }
+});
+
+function dataViz(incomingData) {
+    d3.select("body").selectAll("div.cities")
+        .data(incomingData)
+        .enter()
+        .append("div")
+        .attr("class", "cities")
+        .html(d => d.label);
+}*/
+
+    /*
+        function dataViz(incomingData) {
+            incomingData.forEach(d => {
+                d.impact = d.favorites.length + d.retweets.length;
+                d.tweetTime = new Date(d.timestamp);
+            })
+            var maxImpact = d3.max(incomingData, d => d.impact);
+            var startEnd = d3.extent(incomingData, d => d.tweetTime);
+            var timeRamp = d3.scaleTime().domain(startEnd).range([20, 480]);
+            var yScale = d3.scaleLinear().domain([0, maxImpact]).range([0, 460]);
+            var radiusScale = d3.scaleLinear()
+                .domain([0, maxImpact]).range([1, 20]);
+            var colorScale = d3.scaleLinear()
+                .domain([0, maxImpact]).range(["white", "#75739F"]);
+            d3.select("svg")
+                .selectAll("circle")
+                .data(incomingData)
+                .enter()
+                .append("circle")
+                .attr("r", d => radiusScale(d.impact))
+                .attr("cx", d => timeRamp(d.tweetTime))
+                .attr("cy", d => 480 - yScale(d.impact))
+                .style("fill", d => colorScale(d.impact))
+                .style("stroke", "black")
+                .style("stroke-width", "1px");
+        };
+    
+        dataViz('tweets.json')
+    */
+
+    let someData;
+    /*
+data file is in the form of:
+{
+    "obs": [
+        {
+            "id": 1,
+            "timestamp": "09/27/2013"
+        }
+        {
+            "id": 2,
+            "timestamp": "07/15/2016"
+        }
+    ]
+}
+    */
+    d3.json("raw.json").then((data) => { someData = data.obs; vizJSON(someData) })
+
+    //console.log("Data is", typeof someData)
+    //nestedObjs = d3.groups(jsonObjs, d => d.id)
+
+    //this what be dlisplaying rn
+    const vizJSON = function (data) {
+        let totalConf = 0;
+        let numConf = 0;
+        let max = 0;
+        let min = 100;
+        //console.log("slice", data[0])
+        for (let d in data) {
+            //console.log("prediction", data[d].predictions)
+            let pred = data[d].predictions
+            for (let predId in pred) {
+                if (pred[predId].confidence < min) {
+                    min = pred[predId].confidence
+                }
+                //console.log(pred[predId].confidence)
+                if (pred[predId].confidence > max) {
+                    max = pred[predId].confidence
+                }
+                totalConf += pred[predId].confidence;
+
+                numConf += 1;
+            }
+        }
+
+        console.log("average confidence rate", totalConf / numConf)
+        console.log("maximum", max)
+        console.log("min", min)
+        d3.select("body").selectAll("div.time")
+            .data(data)
+            .enter()
+            .append("h1")
+            .attr("class", "time")
+            .html((data) => data.timestamp)
+    }
+    /*
+    reference
+    */
+
+    function dataViz(incomingData) {
+        incomingData.forEach(d => {
+            d.impact = d.favorites.length + d.retweets.length;
+            d.tweetTime = new Date(d.timestamp);
+        })
+        var maxImpact = d3.max(incomingData, d => d.impact);
+        var startEnd = d3.extent(incomingData, d => d.tweetTime);
+        var timeRamp = d3.scaleTime().domain(startEnd).range([20, 480]);
+        var yScale = d3.scaleLinear().domain([0, maxImpact]).range([0, 460]);
+        var radiusScale = d3.scaleLinear()
+            .domain([0, maxImpact]).range([1, 20]);
+        var colorScale = d3.scaleLinear()
+            .domain([0, maxImpact]).range(["white", "#75739F"]);
+        d3.select("svg")
+            .selectAll("circle")
+            .data(incomingData)
+            .enter()
+            .append("circle")
+            .attr("r", d => radiusScale(d.impact))
+            .attr("cx", d => timeRamp(d.tweetTime))
+            .attr("cy", d => 480 - yScale(d.impact))
+            .style("fill", d => colorScale(d.impact))
+            .style("stroke", "black")
+            .style("stroke-width", "1px");
+    };
+
+
+</script>
+
+</html>
