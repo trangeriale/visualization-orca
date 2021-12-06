@@ -133,7 +133,7 @@ d3.select("svg")
         //timeRange = [new Date(timeRange[0]), new Date(timeRange[1])]
 
         const width = 9000
-        const height = 1000, m = width > 599 ? 90 : 10;
+        const height = 1200, m = width > 599 ? 90 : 10;
 
         const timeScale = d3.scaleTime().domain(timeRange).range([m, width - m]).nice()
         //visualizeTicks(d3.scaleTime().domain([timeRange]).range([0, 5000]))
@@ -166,7 +166,7 @@ d3.select("svg")
             .append("g")
             .attr("transform", `translate(${m - 20},${-height + m})`)
             .call(d3.axisLeft(intScale)
-                .ticks(5)
+                .ticks(15, "2f")
             )
         const chart = d3.select("svg.timeline")
         let lastObs = null
