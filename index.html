@@ -181,6 +181,7 @@ d3.select("svg")
 
 
             let dataPoints = chart.append("g")
+                .attr("id", timePos)
                 .selectAll("circle")
                 .data(predData)
                 .enter()
