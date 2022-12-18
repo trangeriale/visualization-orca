@@ -1,6 +1,4 @@
-let rawData;
-
-d3.json("raw.json").then((data) => { rawData = data.obs; vizJSON(rawData) })
+d3.json("raw.json").then((data) => { vizJSON(data.obs) })
 
 //main function
 const vizJSON = function (data) {
@@ -40,16 +38,19 @@ const vizJSON = function (data) {
         }
     }
 
+    const toMiliSecConst = 60 * 60 * 1000;
+    const UTCtoPSTOffset = 4;
     //convert all time data to miliseconds after UTC hour to prevent time range being repetitive
     const convertToUTCTime = (timeString) => {
         const dateObj = new Date(timeString)
-        return dateObj.getUTCHours() * 60 * 60 * 1000 + dateObj.getUTCMinutes() * 60 * 1000 + dateObj.getUTCSeconds() * 1000 + dateObj.getUTCMilliseconds()
+        return (dateObj.getUTCHours() * toMiliSecConst + dateObj.getUTCMinutes() * 60 * 1000 + dateObj.getUTCSeconds() * 1000 + dateObj.getUTCMilliseconds()) % (12 * toMiliSecConst)
     }
-    const timeDomain = d3.extent(data, (d) => convertToUTCTime(new Date(d.timestamp)))
+    const timeDomain = d3.extent([-toMiliSecConst * UTCtoPSTOffset, toMiliSecConst * (23 - UTCtoPSTOffset)]) //scale time domain back to PST Time
+    // const timeDomain = d3.extent(data, (d) => convertToUTCTime(new Date(d.timestamp)))
     console.log(timeDomain, "timedomain")
-    const monthDomain = d3.extent(data, d => (new Date(d.timestamp)))
+    const monthDomain = d3.extent(data, d => (new Date(d.timestamp))) //.setFullYear(2020) this is so that we group all the years together, doesn't need to be 2020
     //initiate size of visualization
-    const width = window.innerWidth;
+    const width = window.innerWidth * 90 / 100;
     const height = window.innerHeight;
     const margin = width > 599 ? 90 : 10;
 
@@ -60,8 +61,15 @@ const vizJSON = function (data) {
     for hour of day to see Pigeon tag
     */
     //tbd add pigeon tag filter
-    const obsPigeon = data.filter((d) => (d.tags ? d.tags.includes('pigeon') : (d.comments ? d.comments.includes('pigeon') : '')));
-    const pigeonPlot = d3.select('body').select('#pigeon-plot')
+    //for pigeon
+
+    const form = document.getElementById("filter-form");
+
+    const tagToggle = document.getElementById("pigeon-tag");
+
+    let pigeonPlot;
+
+    pigeonPlot = d3.select('body').select('#pigeon-plot')
         .append('svg')
         .attr('width', width)
         .attr('height', height)
@@ -69,7 +77,7 @@ const vizJSON = function (data) {
     pigeonPlot.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(${0}, ${height - margin})`)
-        .call(d3.axisBottom(dayTimeScale).ticks(d3.timeHour.every(1)).tickFormat(d3.timeFormat('%I:%M')))
+        .call(d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M')))
     pigeonPlot.append('g')
         .attr('class', 'y-axis')
         .attr('transform', `translate(${margin}, ${-margin})`)
@@ -77,49 +85,88 @@ const vizJSON = function (data) {
 
     //axe labeling
     pigeonPlot.append('text')
+        .attr("class", "axis-label")
         .attr('text-anchor', 'middle')
         .attr('x', margin)
         .attr('y', margin / 6)
         .html('Month')
         .style("font-size", "1rem")
-        .style("font-weight", "500")
-        .style("font-family", "sans-serif")
+    //  .style("font-weight", "500")
+    //  .style("font-family", "sans-serif")
     pigeonPlot.append('text')
+        .attr("class", "axis-label")
         .attr('text-anchor', 'middle')
         .attr('x', width - margin)
         .attr('y', height - margin / 2)
         .html('Hour of Day')
         .style("font-size", "1rem")
-        .style("font-weight", "500")
-        .style("font-family", "sans-serif")
-    //see what's a single datapoint -> svg: width of rect: same (60 secs)
-    //height of rect: a random #? 
-    const dtpHeight = 10;
-    const rescaleFactor = 5;
+    // .style("font-weight", "500")
+    //.style("font-family", "sans-serif")
 
-    let pigeonData = pigeonPlot.append("g")
-        .selectAll("circle")
-        .data(obsPigeon)
-        .enter()
-        .append("circle")
-        .attr("id", (d) => (d.timestamp))
-        .attr("cx", (d) => {
-            // console.log(new Date(d.timestamp))
-            return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
-        })
-        .attr("r", '10px')
-        .attr("cy", (d) => monthScale(new Date(d.timestamp)) - margin)
-        .attr("fill", 'blue')
-        .attr("fill-opacity", "0.5")
+    const pigeonDataArea = pigeonPlot.append("g")
 
-    console.log(dayTimeScale((new Date('2020-11-22T19:26:58.191224Z')).getHours()))
+    const pointColor = "#3485d1"
+    const updateChart = (newData) => {
+        pigeonDataArea.selectAll("circle").data(newData).join(
+            enter => enter.append("circle")
+                .attr("id", (d) => (d.timestamp))
+                .attr("cx", (d) => {
+                    return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
+                })
+                .on("click", (e) => { console.log((new Date(e.srcElement.__data__.timestamp))) })
+                .attr("r", '10px')
+                .attr("cy", (d) => monthScale((new Date(d.timestamp))) - margin)
+                .attr("fill", pointColor)
+                .attr("fill-opacity", "0.2"),
+            update => update.call(
+                update => update.transition().duration(750)
+                    .attr("id", (d) => (d.timestamp))
+                    .attr("cx", (d) => {
+                        return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
+                    })
+                    .attr("r", '10px')
+                    .attr("cy", (d) => monthScale((new Date(d.timestamp))) - margin)
+                    .attr("fill", pointColor)
+                    .attr("fill-opacity", "0.2")),
+            exit => exit.call(exit => exit.remove())
+        )
+    }
+
+    updateChart(data)
+
+    form.addEventListener('change', (e) => {
+        if (e.target.value !== "all") {
+            const newData = data.filter((d) => {
+                const month = (new Date(d.timestamp)).getUTCMonth() + 1;
+                console.log(month)
+                return parseInt(e.target.value) === month
+            })
+            //   console.log(pigeonData)
+            updateChart(newData);
+        }
+        //    pigeonDataArea.update();
+        //renderPigeonData(pigeonData)
+    });
+
+    tagToggle.addEventListener('change', (e) => {
+        let newData = data
+        if (e.target.checked) {
+            //console.log("hurah")
+            newData = data.filter((d) => (d.tags ? d.tags.includes('pigeon') : (d.comments ? d.comments.includes('pigeon') : '')));
+        }
+        updateChart(newData)
+    })
+    //console.log(dayTimeScale((new Date('2020-11-22T19:26:58.191224Z')).getHours()))
     /*         const dayTimeScale = d3.scaleTime().domain(timeDomain).range([margin, width - margin]); //cx
             console.log('day time scale', dayTimeScale(convertToUTCTime("2021-08-17T00:09:07.553583Z")))
         
             const monthScale = d3.scaleTime().domain(monthDomain).range([height, margin * 4 / 3]).nice() //cy
             console.log('month scale', monthScale(new Date("2021-08-17T00:09:07.553583Z"))) */
     // }
-
+    //see what's a single datapoint -> svg: width of rect: same (60 secs)
+    //height of rect: a random #? 
+    const dtpHeight = 10;
+    const rescaleFactor = 5;
     //td: add circles with pigeon tag
     //add axes with time and 60 second interval scale
     //60 minute interval -- old code
@@ -130,28 +177,31 @@ const vizJSON = function (data) {
     const durationScale = d3.scaleLinear().domain([0, 60]).range([0, height - margin])
     const colorScale = d3.scaleLinear().domain([minConf, maxConf]).range(["#D85656", "#009429"])
 
-    const durationPlot = d3.select("body").select("#dot-plot").append("svg")
+    const durationPlot = d3.select("body").select("#dot-plot").select("#main")
+        .append("svg")
         .attr("class", "timeline")
         .attr("width", width)
         .attr("height", height)
 
     durationPlot.append('text')
+        .attr("class", "axis-label")
         .attr('text-anchor', 'middle')
         .attr('x', margin)
         .attr('y', margin / 2)
         .html('60 second duration')
         .style("font-size", "1rem")
-        .style("font-weight", "500")
-        .style("font-family", "sans-serif")
+    // .style("font-weight", "500")
+    //  .style("font-family", "sans-serif")
 
     durationPlot.append('text')
+        .attr("class", "axis-label")
         .attr('text-anchor', 'middle')
         .attr('x', width - margin)
         .attr('y', height - margin / 2)
         .html('Month')
         .style("font-size", "1rem")
-        .style("font-weight", "500")
-        .style("font-family", "sans-serif")
+    //.style("font-weight", "800")
+    //  .style("font-family", "sans-serif")
 
     durationPlot
         .append("g")
@@ -167,6 +217,7 @@ const vizJSON = function (data) {
         .call(d3.axisLeft(intScale)
             .ticks(15, "2f")
         )
+
     const chart = d3.select("svg.timeline")
     let lastObs = null
     let dataElements = []
@@ -185,18 +236,19 @@ const vizJSON = function (data) {
             .data(predData)
             .enter()
             .append("circle")
-            .attr("id", timePos)
+            .attr("id", d.id)
             .attr("cx", timeScale(timePos))
             .attr("r", radius)//also bad that the datapoint gets bigger in every direction
             .attr("cy", d => intScale(d.startTime) - durationScale(d.duration) / 2)
             .attr("fill", d => colorScale(d.confidence))
             .attr("fill-opacity", "0.5")
             .on("click", (d) => console.log(d, d.duration, "at id", id))
-
-        //chang le neu cu them vao thi lai phai index cai object...
     }
 
     /*     console.log(count, "test count")
         console.log(lastObs)
         console.log(lastObs.predictions) */
 }
+
+//interaction
+

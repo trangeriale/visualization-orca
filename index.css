@@ -1,5 +1,70 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+}
+
 @media all and (max-width : 700px) {
     svg.timeline {
         width: 90vw;
     }
+}
+
+label {
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+#dot-plot {
+    display: flex;
+    flex-direction: row;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.toggle {
+    display: flex;
+    background-color: green;
+}
+
+p {
+    font-weight: 800;
+}
+
+.axis-label {
+    font-weight: 800;
+}
+
+label#pigeon-toggle {
+    width: 40px;
+    background-color: red;
+}
+
+input[type="checkbox"] {
+    display: none;
+}
+
+input+span {
+    position: relative;
+    width: 4em;
+    border-radius: 1rem;
+    background-color: #d69a8b;
+    display: flex;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    transition: all 1s ease;
+}
+
+span::after {
+    content: "";
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.5rem;
+    background-color: white;
+}
+
+input:checked+span {
+    flex-direction: row-reverse;
+    background-color: #7fc789;
 }
