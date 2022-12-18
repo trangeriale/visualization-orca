@@ -134,27 +134,37 @@ const vizJSON = function (data) {
 
     updateChart(data)
 
+    let currentMonthData = data;
+    let currentPigeonData = data; //whether we have pigeon data only or all
+    let pigeonTag = false;
+    let currentMonth;
+    const pigeonFilter = (d) => (d.tags ? d.tags.includes('pigeon') : (d.comments ? d.comments.includes('pigeon') : ''));
+
+    const pigeonData = data.filter(pigeonFilter);
+
     form.addEventListener('change', (e) => {
-        if (e.target.value !== "all") {
-            const newData = data.filter((d) => {
+        currentMonth = parseInt(e.target.value)
+        if (e.target.value !== 'all') {
+            currentMonthData = data.filter((d) => {
                 const month = (new Date(d.timestamp)).getUTCMonth() + 1;
-                console.log(month)
-                return parseInt(e.target.value) === month
+                return currentMonth === month;
             })
-            //   console.log(pigeonData)
-            updateChart(newData);
+        } else {
+            currentMonthData = data;
         }
-        //    pigeonDataArea.update();
-        //renderPigeonData(pigeonData)
+        updateChart(pigeonTag ? currentMonthData.filter(pigeonFilter) : currentMonthData)
     });
 
     tagToggle.addEventListener('change', (e) => {
-        let newData = data
+        pigeonTag = !pigeonTag;
         if (e.target.checked) {
-            //console.log("hurah")
-            newData = data.filter((d) => (d.tags ? d.tags.includes('pigeon') : (d.comments ? d.comments.includes('pigeon') : '')));
+            currentPigeonData = currentMonthData.filter(pigeonFilter);
+            // console.log("hurrah")
+        } else {
+            // console.log("not hurrah")
+            currentPigeonData = currentMonthData;
         }
-        updateChart(newData)
+        updateChart(currentPigeonData)
     })
     //console.log(dayTimeScale((new Date('2020-11-22T19:26:58.191224Z')).getHours()))
     /*         const dayTimeScale = d3.scaleTime().domain(timeDomain).range([margin, width - margin]); //cx
@@ -213,7 +223,7 @@ const vizJSON = function (data) {
                 d => d.toLocaleString('default', { month: 'numeric' }))
         )
         .append("g")
-        .attr("transform", `translate(${margin - 20},${-height + margin})`)
+        .attr("transform", `translate(${margin - 20}, ${-height + margin})`)
         .call(d3.axisLeft(intScale)
             .ticks(15, "2f")
         )
