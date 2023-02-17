@@ -48,11 +48,21 @@ const vizJSON = function (data) {
     const timeDomain = d3.extent([-toMiliSecConst * UTCtoPSTOffset, toMiliSecConst * (23 - UTCtoPSTOffset)]) //scale time domain back to PST Time
     // const timeDomain = d3.extent(data, (d) => convertToUTCTime(new Date(d.timestamp)))
     console.log(timeDomain, "timedomain")
-    const monthDomain = d3.extent(data, d => (new Date(d.timestamp))) //.setFullYear(2020) this is so that we group all the years together, doesn't need to be 2020
+    const monthDomain = d3.extent(data, d => (new Date(d.timestamp)).setUTCFullYear(2020)) //.setFullYear(2020) this is so that we group all the years together, doesn't need to be 2020
     //initiate size of visualization
-    const width = window.innerWidth * 90 / 100;
-    const height = window.innerHeight;
+    const width = window.innerWidth * 70 / 100;
+    const height = window.innerHeight * 80 / 100;
     const margin = width > 599 ? 90 : 10;
+
+    const confidenceExtent = d3.extent(data, d => d.whaleFoundConfidence);
+
+    const sortedConfidence = data.map(d => d.whaleFoundConfidence).sort(d3.ascending);
+    /* 
+        const firstQuant = d3.quantileSorted(sortedConfidence, 0.25, d => d.whaleFoundConfidence);
+    
+        const secondQUant = d3.quantileSorted(sortedConfidence, 0.5, d => d.whaleFoundConfidence);
+    
+        const thirdQuant = d3.quantileSorted(sortedConfidence, 0.75, d => d.whaleFoundConfidence); */
 
     const dayTimeScale = d3.scaleTime().domain(timeDomain).range([margin, width - margin]).nice(); //cx
 
@@ -71,6 +81,7 @@ const vizJSON = function (data) {
 
     pigeonPlot = d3.select('body').select('#pigeon-plot')
         .append('svg')
+        .attr('id', "main-chart")
         .attr('width', width)
         .attr('height', height)
 
@@ -78,10 +89,11 @@ const vizJSON = function (data) {
         .attr('class', 'x-axis')
         .attr('transform', `translate(${0}, ${height - margin})`)
         .call(d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M')))
+
     pigeonPlot.append('g')
         .attr('class', 'y-axis')
         .attr('transform', `translate(${margin}, ${-margin})`)
-        .call(d3.axisLeft(monthScale).ticks(d3.timeMonth).tickFormat((d) => d.toLocaleString('default', { month: 'long', year: 'numeric' })))
+        .call(d3.axisLeft(monthScale).ticks(d3.timeMonth).tickFormat((d) => d.toLocaleString('default', { month: 'long' })))
 
     //axe labeling
     pigeonPlot.append('text')
@@ -91,8 +103,7 @@ const vizJSON = function (data) {
         .attr('y', margin / 6)
         .html('Month')
         .style("font-size", "1rem")
-    //  .style("font-weight", "500")
-    //  .style("font-family", "sans-serif")
+
     pigeonPlot.append('text')
         .attr("class", "axis-label")
         .attr('text-anchor', 'middle')
@@ -100,12 +111,51 @@ const vizJSON = function (data) {
         .attr('y', height - margin / 2)
         .html('Hour of Day')
         .style("font-size", "1rem")
-    // .style("font-weight", "500")
-    //.style("font-family", "sans-serif")
 
-    const pigeonDataArea = pigeonPlot.append("g")
+    pigeonPlot.append('defs').append('SVG:clipPath')
+        .attr("id", "clip")
+        .append("SVG:rect")
+        .attr("width", width - margin)
+        .attr("height", height)
+        .attr("x", margin)
+        .attr("y", 0)
+
+    /*     dashBoard.append("defs").append("SVG:clipPath")
+            .attr("id", "clip")
+            .append("SVG:rect")
+            .attr("width", width - m)
+            .attr("height", height - m * 3 / 2)
+            .attr("x", m)
+            .attr("y", m / 2)
+    
+        const dataField = dashBoard.append('g').attr('clip-path', "url('#clip')"); */
+
+    const confidenceScale = d3.scaleQuantize().domain(confidenceExtent).range(['#F5A15C', '#FFE277', '#B4F3F2', '#70ABF1']);
+
+    const interpolator = d3.interpolate(...confidenceExtent)
+    const confidenceLevels = d3.quantize(interpolator, 5) //4 levels of whale found confidence
+    console.log(confidenceLevels)
+    console.log(confidenceExtent, "Extent")
+    const pigeonDataArea = pigeonPlot.append("g").attr('clip-path', "url('#clip')");
 
     const pointColor = "#3485d1"
+
+    const popoverMargin = '0.25rem';
+
+    //show popover with position in relative to the element clicked on
+    const showPopover = (event) => {
+        console.log("woo!")
+        console.log(event.pageX, "pageX")
+        d3.select("#main-chart")
+            .append("div")
+            .style("position", "absolute")
+            .style("top", `${event.pageX}`)
+            .style("width", "100px")
+            .style("height", "100px")
+            .style("border", "1px solid black")
+            .style("background-color", "red")
+    }
+
     const updateChart = (newData) => {
         pigeonDataArea.selectAll("circle").data(newData).join(
             enter => enter.append("circle")
@@ -113,11 +163,36 @@ const vizJSON = function (data) {
                 .attr("cx", (d) => {
                     return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
                 })
-                .on("click", (e) => { console.log((new Date(e.srcElement.__data__.timestamp))) })
                 .attr("r", '10px')
-                .attr("cy", (d) => monthScale((new Date(d.timestamp))) - margin)
-                .attr("fill", pointColor)
-                .attr("fill-opacity", "0.2"),
+                .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
+                .attr("fill", (d) => confidenceScale(d.whaleFoundConfidence))
+                .attr("fill-opacity", "0.5")
+                .style("stroke", "black")
+                .style("stroke-opacity", "0.5")
+                .attr("data-playing", "false")
+                .on("click", (e) => {
+                    const audio = new Audio(e.target.__data__.audioUri);
+                    console.log("E page", e.pageX);
+                    showPopover(e)
+                    //   const dataPoint = document.getElementById(`${e.target.__data__.timestamp}`)
+                    // console.log(dataPoint.dataset)
+                    /*                     if (e.target.dataset.playing === "false") {
+                                            console.log("waa")
+                                            audio.play();
+                                            e.target.dataset.playing = "true";
+                                        } else {
+                                            console.log(audio.pause());
+                                            console.log("pauseee");
+                                            e.target.dataset.playing = "false";
+                                        } */
+                    /*   e.target.parent.appendChild() */
+                    // const 
+                    /*           const dataPopover = document.createElement("div");
+                              dataPopover.classList.add("data-popover")
+                              dataPopover.appendChild() */
+                    console.log(e.target.parentElement)
+                }),
+            // .on("click", (e) => { console.log((new Date(e.srcElement.__data__.timestamp))) })
             update => update.call(
                 update => update.transition().duration(750)
                     .attr("id", (d) => (d.timestamp))
@@ -125,9 +200,9 @@ const vizJSON = function (data) {
                         return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
                     })
                     .attr("r", '10px')
-                    .attr("cy", (d) => monthScale((new Date(d.timestamp))) - margin)
-                    .attr("fill", pointColor)
-                    .attr("fill-opacity", "0.2")),
+                    .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
+                    .attr("fill", (d) => confidenceScale(d.whaleFoundConfidence))
+                    .attr("fill-opacity", "0.5")),
             exit => exit.call(exit => exit.remove())
         )
     }
@@ -140,7 +215,7 @@ const vizJSON = function (data) {
     let currentMonth;
     const pigeonFilter = (d) => (d.tags ? d.tags.includes('pigeon') : (d.comments ? d.comments.includes('pigeon') : ''));
 
-    const pigeonData = data.filter(pigeonFilter);
+    //  const pigeonData = data.filter(pigeonFilter);
 
     form.addEventListener('change', (e) => {
         currentMonth = parseInt(e.target.value)

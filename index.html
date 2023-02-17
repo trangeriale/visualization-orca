@@ -12,38 +12,46 @@
 
 <body>
     <!--<svg style="width:500px;height:500px;border:1px lightgray solid;"></svg>-->
-    <div id="pigeon-plot">
-        <h2>Filter</h2>
-        <form id="filter-form">
+    <div id="pigeon-inter">
+        <div id="pigeon-plot"></div>
+        <div class="control">
+            <form id="filter-form">
+                <label>
+                    Choose month
+                    <div>
+                        <select name="month" id="month">
+                            <option value="all">Month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </label>
+            </form>
             <label>
-                Choose month
-                <select name="month" id="month">
-                    <option value="all"></option>
-                    <option value="1">January</option>
-                    <option value="2">February</option>
-                    <option value="3">March</option>
-                    <option value="4">April</option>
-                    <option value="5">May</option>
-                    <option value="6">June</option>
-                    <option value="7">July</option>
-                    <option value="8">August</option>
-                    <option value="9">September</option>
-                    <option value="10">October</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>
-                </select>
+                Pigeon Tag?
+                <div id="toggle">
+                    <input id="pigeon-tag" type="checkbox">
+                    <!-- why did it not change color without the id in css-->
+                    <span id="toggle-button"></span>
+                </div>
             </label>
-        </form>
-        <label>
-            Pigeon Tag?
-            <input id="pigeon-tag" type="checkbox">
-            <span></span>
-        </label>
+            <label>
+                <span></span>
+            </label>
+        </div>
     </div>
     <div id="dot-plot">
         <div id="main">
-        </div>
-        <div id="legend-dot-plot">
         </div>
     </div>
 </body>
