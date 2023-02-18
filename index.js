@@ -85,16 +85,29 @@ const vizJSON = function (data) {
         .attr('width', width)
         .attr('height', height)
 
-    pigeonPlot.append('g')
+    const xAxis = pigeonPlot.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(${0}, ${height - margin})`)
         .call(d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M')))
 
-    pigeonPlot.append('g')
+    //study call func when get up
+    const yAxis = pigeonPlot.append('g')
         .attr('class', 'y-axis')
         .attr('transform', `translate(${margin}, ${-margin})`)
         .call(d3.axisLeft(monthScale).ticks(d3.timeMonth).tickFormat((d) => d.toLocaleString('default', { month: 'long' })))
 
+    console.log(yAxis);
+
+    const arr = [yAxis, xAxis]
+    arr.forEach((element) => {
+        element.selectAll("g.tick")
+            .style("stroke-width", "2px")
+            .select("text")
+            .attr("class", "tick-text");
+
+        element.select("path")
+            .style("stroke-width", "2px")
+    });
     //axe labeling
     pigeonPlot.append('text')
         .attr("class", "axis-label")
@@ -166,7 +179,7 @@ const vizJSON = function (data) {
                 .attr("r", '10px')
                 .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
                 .attr("fill", (d) => confidenceScale(d.whaleFoundConfidence))
-                .attr("fill-opacity", "0.5")
+                .attr("fill-opacity", "0.8")
                 .style("stroke", "black")
                 .style("stroke-opacity", "0.5")
                 .attr("data-playing", "false")
@@ -202,7 +215,7 @@ const vizJSON = function (data) {
                     .attr("r", '10px')
                     .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
                     .attr("fill", (d) => confidenceScale(d.whaleFoundConfidence))
-                    .attr("fill-opacity", "0.5")),
+                    .attr("fill-opacity", "0.8")),
             exit => exit.call(exit => exit.remove())
         )
     }
