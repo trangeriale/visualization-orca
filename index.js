@@ -49,8 +49,8 @@ const vizJSON = function (data) {
     // const timeDomain = d3.extent(data, (d) => convertToUTCTime(new Date(d.timestamp)))
     const monthDomain = d3.extent(data, d => (new Date(d.timestamp)).setUTCFullYear(2020)) //.setFullYear(2020) so we don't have repeated months
     //initiate size of visualization
-    const width = window.innerWidth * 70 / 100;
-    const height = window.innerHeight * 80 / 100;
+    const width = window.innerWidth * 80 / 100;
+    const height = window.innerHeight * 90 / 100;
     const margin = width > 599 ? 90 : 10;
 
     const confidenceExtent = d3.extent(data, d => d.whaleFoundConfidence);
@@ -172,7 +172,14 @@ const vizJSON = function (data) {
             .style("border", "1px solid black")
             .style("background-color", "white")
             .style("border-radius", "1rem")
+            .style("border", "1px solid #D9D9D9")
+            .style("box-shadow", "5px 5px 6px 3px rgba(0, 0, 0, 0.25)")
 
+        //border: 
+        /* data popover
+        
+        for a popover when click on a datapoint
+        */
         const audioElem = addPopover.append("audio").attr("src", audioUri).attr("controls", "true")
         openPopover = (addPopover._groups)[0][0]
     };
