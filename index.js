@@ -47,8 +47,7 @@ const vizJSON = function (data) {
     }
     const timeDomain = d3.extent([-toMiliSecConst * UTCtoPSTOffset, toMiliSecConst * (23 - UTCtoPSTOffset)]) //scale time domain back to PST Time
     // const timeDomain = d3.extent(data, (d) => convertToUTCTime(new Date(d.timestamp)))
-    console.log(timeDomain, "timedomain")
-    const monthDomain = d3.extent(data, d => (new Date(d.timestamp)).setUTCFullYear(2020)) //.setFullYear(2020) this is so that we group all the years together, doesn't need to be 2020
+    const monthDomain = d3.extent(data, d => (new Date(d.timestamp)).setUTCFullYear(2020)) //.setFullYear(2020) so we don't have repeated months
     //initiate size of visualization
     const width = window.innerWidth * 70 / 100;
     const height = window.innerHeight * 80 / 100;
@@ -85,23 +84,24 @@ const vizJSON = function (data) {
         .attr('width', width)
         .attr('height', height)
 
+    const xAxisInit = d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M'))
     const xAxis = pigeonPlot.append('g')
         .attr('class', 'x-axis')
-        .attr('transform', `translate(${0}, ${height - margin})`)
-        .call(d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M')))
+        .attr('transform', `translate(${margin * 1 / 3}, ${height - margin})`)
+        .call(xAxisInit)
 
+    const yAxisInit = d3.axisLeft(monthScale).ticks(d3.timeMonth).tickFormat((d) => d.toLocaleString('default', { month: 'long' }))
     //study call func when get up
     const yAxis = pigeonPlot.append('g')
         .attr('class', 'y-axis')
-        .attr('transform', `translate(${margin}, ${-margin})`)
-        .call(d3.axisLeft(monthScale).ticks(d3.timeMonth).tickFormat((d) => d.toLocaleString('default', { month: 'long' })))
+        .attr('transform', `translate(${margin * 4 / 3}, ${-margin})`)
+        .call(yAxisInit)
 
-    console.log(yAxis);
-
+    //style the tick texts and length
     const arr = [yAxis, xAxis]
     arr.forEach((element) => {
         element.selectAll("g.tick")
-            .style("stroke-width", "2px")
+            .style("stroke-width", "1px")
             .select("text")
             .attr("class", "tick-text");
 
@@ -128,20 +128,12 @@ const vizJSON = function (data) {
     pigeonPlot.append('defs').append('SVG:clipPath')
         .attr("id", "clip")
         .append("SVG:rect")
-        .attr("width", width - margin)
-        .attr("height", height)
-        .attr("x", margin)
+        .attr("width", width - margin * 2)
+        .attr("height", height - margin)
+        .attr("x", margin * 4 / 3)
         .attr("y", 0)
 
-    /*     dashBoard.append("defs").append("SVG:clipPath")
-            .attr("id", "clip")
-            .append("SVG:rect")
-            .attr("width", width - m)
-            .attr("height", height - m * 3 / 2)
-            .attr("x", m)
-            .attr("y", m / 2)
-    
-        const dataField = dashBoard.append('g').attr('clip-path', "url('#clip')"); */
+    const pigeonDataArea = pigeonPlot.append("g").attr('clip-path', "url('#clip')");
 
     const confidenceScale = d3.scaleQuantize().domain(confidenceExtent).range(['#F5A15C', '#FFE277', '#B4F3F2', '#70ABF1']);
 
@@ -149,32 +141,60 @@ const vizJSON = function (data) {
     const confidenceLevels = d3.quantize(interpolator, 5) //4 levels of whale found confidence
     console.log(confidenceLevels)
     console.log(confidenceExtent, "Extent")
-    const pigeonDataArea = pigeonPlot.append("g").attr('clip-path', "url('#clip')");
 
-    const pointColor = "#3485d1"
+    const popoverMargin = 10;
 
-    const popoverMargin = '0.25rem';
+    let click = 0;
 
+    let openPopover;
     //show popover with position in relative to the element clicked on
     const showPopover = (event) => {
-        console.log("woo!")
-        console.log(event.pageX, "pageX")
-        d3.select("#main-chart")
+        const dataPoint = event.target.__data__
+        const { audioUri, predictions } = dataPoint;
+        if (openPopover) {
+            if (!event.target.id.includes(openPopover.id) && !openPopover.id.includes(event.target.id)) {
+                openPopover.remove();
+                /*              /*        console.log(openPopover, "now") */
+                //console.log("close") //close popover if click outside of the datapoint or the popover */
+                //focus
+            }
+        }
+        const addPopover = d3.select("#pigeon-plot")
             .append("div")
             .style("position", "absolute")
-            .style("top", `${event.pageX}`)
-            .style("width", "100px")
-            .style("height", "100px")
+            .attr("class", "open")
+            .attr("id", `popover`)
+            .style("top", `${event.pageY + popoverMargin}px`)
+            .style("left", `${event.pageX + popoverMargin}px`)
+            .style("width", "auto")
+            .style("height", "auto")
+            .style("padding", "1rem")
             .style("border", "1px solid black")
-            .style("background-color", "red")
-    }
+            .style("background-color", "white")
+            .style("border-radius", "1rem")
 
+        const audioElem = addPopover.append("audio").attr("src", audioUri).attr("controls", "true")
+        openPopover = (addPopover._groups)[0][0]
+    };
+
+    document.addEventListener('click', (e) => {
+        const currentPopover = document.getElementById("popover");
+        if (currentPopover) {
+            click += 1;
+            if (click === 2) {
+                currentPopover.remove();
+                click = 0;
+            }
+        }
+    })
+
+    //refactor this
     const updateChart = (newData) => {
         pigeonDataArea.selectAll("circle").data(newData).join(
             enter => enter.append("circle")
-                .attr("id", (d) => (d.timestamp))
+                .attr("id", (d) => (d.id))
                 .attr("cx", (d) => {
-                    return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
+                    dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
                 })
                 .attr("r", '10px')
                 .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
@@ -185,7 +205,7 @@ const vizJSON = function (data) {
                 .attr("data-playing", "false")
                 .on("click", (e) => {
                     const audio = new Audio(e.target.__data__.audioUri);
-                    console.log("E page", e.pageX);
+                    //console.log("E page", e.pageX);
                     showPopover(e)
                     //   const dataPoint = document.getElementById(`${e.target.__data__.timestamp}`)
                     // console.log(dataPoint.dataset)
@@ -203,7 +223,6 @@ const vizJSON = function (data) {
                     /*           const dataPopover = document.createElement("div");
                               dataPopover.classList.add("data-popover")
                               dataPopover.appendChild() */
-                    console.log(e.target.parentElement)
                 }),
             // .on("click", (e) => { console.log((new Date(e.srcElement.__data__.timestamp))) })
             update => update.call(
@@ -254,17 +273,39 @@ const vizJSON = function (data) {
         }
         updateChart(currentPigeonData)
     })
-    //console.log(dayTimeScale((new Date('2020-11-22T19:26:58.191224Z')).getHours()))
-    /*         const dayTimeScale = d3.scaleTime().domain(timeDomain).range([margin, width - margin]); //cx
-            console.log('day time scale', dayTimeScale(convertToUTCTime("2021-08-17T00:09:07.553583Z")))
-        
-            const monthScale = d3.scaleTime().domain(monthDomain).range([height, margin * 4 / 3]).nice() //cy
-            console.log('month scale', monthScale(new Date("2021-08-17T00:09:07.553583Z"))) */
-    // }
-    //see what's a single datapoint -> svg: width of rect: same (60 secs)
+
+    const view = pigeonPlot.append("rect").attr("class", "view")
+        .attr("fill", "none")
+        .attr("x", `${margin}`)
+        .attr("width", `${width}`)
+        .attr("height", `${height - margin * 4}`);
+
+    const zoomed = ({ transform }) => {
+        view.attr("transform", transform);
+        let newDayTimeScale = transform.rescaleX(dayTimeScale);
+        let newMonthScale = transform.rescaleY(monthScale);
+
+        xAxis.call(xAxisInit.scale(newDayTimeScale));
+        yAxis.call(yAxisInit.scale(newMonthScale));
+
+        pigeonPlot.selectAll("circle")
+            .attr("cx", (d) => newDayTimeScale(convertToUTCTime(new Date(d.timestamp))))
+            .attr("cy", (d) => newMonthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin);
+    }
+
+    updateChart(data);
+
+    const zoom = d3.zoom().scaleExtent([.5, 20]).extent([[0, 0], [width, height]]).on("zoom", zoomed)
+
+    function reset() {
+        pigeonPlot.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity)
+    }
+
+    Object.assign(pigeonPlot.call(zoom).node(), { reset });
+
     //height of rect: a random #? 
-    const dtpHeight = 10;
-    const rescaleFactor = 5;
     //td: add circles with pigeon tag
     //add axes with time and 60 second interval scale
     //60 minute interval -- old code

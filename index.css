@@ -76,6 +76,7 @@ p {
 #toggle {
     display: flex;
     flex-direction: row;
+    justify-content: flex-start;
     width: 100%;
 }
 
@@ -85,13 +86,12 @@ label {
 }
 
 span#toggle-button {
-    position: absolute;
+    position: relative;
     width: 4rem;
     border-radius: 1rem;
     background-color: var(--primary-contrast-color);
     display: flex;
     padding: 0.5rem;
-    margin-bottom: 1rem;
     transition: all 1s ease;
 }
 
@@ -107,6 +107,7 @@ input#pigeon-tag {
     width: 1px;
     height: 1px;
     clip-path: inset(50%);
+    /* hide input but visible for tabbing/a11y */
 }
 
 /* way to boolean it if input is checked */
@@ -118,6 +119,41 @@ input:checked+span#toggle-button {
 
 input:focus+span#toggle-button {
     border: 2px solid black;
+}
+
+.legend {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+}
+
+.confidence-1st {
+    background-color: #70ABF1;
+}
+
+.confidence-2nd {
+    background-color: #B4F3F2;
+}
+
+.confidence-3rd {
+    background-color: #FFE277;
+}
+
+.confidence-4th {
+    background-color: #F5A15C;
+}
+
+#range-bar {
+    width: 100%;
+    height: 1.5rem;
+    background: linear-gradient(90deg, #70ABF1 0%, #B4F3F2 35.42%, #FFE277 66.67%, rgba(245, 161, 92, 0.8) 100%, #F5A15C 100%);
+}
+
+#number-range {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Courier';
 }
 
 /* media queries*/
