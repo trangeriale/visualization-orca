@@ -39,13 +39,14 @@ const vizJSON = function (data) {
     }
 
     const toMiliSecConst = 60 * 60 * 1000;
-    const UTCtoPSTOffset = 4;
+    //  const UTCtoPSTOffset = (new Date()).getHours() - (new Date()).getUTCHours();
     //convert all time data to miliseconds after UTC hour to prevent time range being repetitive
     const convertToUTCTime = (timeString) => {
         const dateObj = new Date(timeString)
-        return (dateObj.getUTCHours() * toMiliSecConst + dateObj.getUTCMinutes() * 60 * 1000 + dateObj.getUTCSeconds() * 1000 + dateObj.getUTCMilliseconds()) % (12 * toMiliSecConst)
+        return (dateObj.getUTCHours() * toMiliSecConst + dateObj.getUTCMinutes() * 60 * 1000 + dateObj.getUTCSeconds() * 1000 + dateObj.getUTCMilliseconds())
     }
-    const timeDomain = d3.extent([-toMiliSecConst * UTCtoPSTOffset, toMiliSecConst * (23 - UTCtoPSTOffset)]) //scale time domain back to PST Time
+    //  const timeDomain = d3.extent([-toMiliSecConst * UTCtoPSTOffset, toMiliSecConst * (23 - UTCtoPSTOffset)]) //scale time domain back to PST Time
+    const timeDomain = d3.extent([0, toMiliSecConst * 24])
     // const timeDomain = d3.extent(data, (d) => convertToUTCTime(new Date(d.timestamp)))
     const monthDomain = d3.extent(data, d => (new Date(d.timestamp)).setUTCFullYear(2020)) //.setFullYear(2020) so we don't have repeated months
     //initiate size of visualization
@@ -84,7 +85,7 @@ const vizJSON = function (data) {
         .attr('width', width)
         .attr('height', height)
 
-    const xAxisInit = d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M'))
+    const xAxisInit = d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M:%p'))
     const xAxis = pigeonPlot.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(${margin * 1 / 3}, ${height - margin})`)
@@ -201,7 +202,7 @@ const vizJSON = function (data) {
             enter => enter.append("circle")
                 .attr("id", (d) => (d.id))
                 .attr("cx", (d) => {
-                    dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
+                    dayTimeScale(convertToUTCTime(d.timestamp))
                 })
                 .attr("r", '10px')
                 .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
@@ -211,6 +212,8 @@ const vizJSON = function (data) {
                 .style("stroke-opacity", "0.5")
                 .attr("data-playing", "false")
                 .on("click", (e) => {
+                    console.log(e.target.__data__.timestamp, "Time");
+                    console.log(e.target.__data__.id, "ID");
                     const audio = new Audio(e.target.__data__.audioUri);
                     //console.log("E page", e.pageX);
                     showPopover(e)
@@ -236,7 +239,7 @@ const vizJSON = function (data) {
                 update => update.transition().duration(750)
                     .attr("id", (d) => (d.timestamp))
                     .attr("cx", (d) => {
-                        return dayTimeScale(convertToUTCTime(new Date(d.timestamp)))
+                        return dayTimeScale(convertToUTCTime(d.timestamp))
                     })
                     .attr("r", '10px')
                     .attr("cy", (d) => monthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin)
@@ -296,7 +299,7 @@ const vizJSON = function (data) {
         yAxis.call(yAxisInit.scale(newMonthScale));
 
         pigeonPlot.selectAll("circle")
-            .attr("cx", (d) => newDayTimeScale(convertToUTCTime(new Date(d.timestamp))))
+            .attr("cx", (d) => newDayTimeScale(convertToUTCTime(d.timestamp)))
             .attr("cy", (d) => newMonthScale((new Date(d.timestamp)).setUTCFullYear(2020)) - margin);
     }
 
@@ -319,7 +322,6 @@ const vizJSON = function (data) {
     const timeYearDomain = d3.extent(data, (d) => new Date(d.timestamp))
     const timeScale = d3.scaleTime().domain(timeYearDomain).range([margin, width - margin]).nice()
     const intScale = d3.scaleLinear().domain([0, 60]).range([height - margin, margin])
-    let count = 0;
     const durationScale = d3.scaleLinear().domain([0, 60]).range([0, height - margin])
     const colorScale = d3.scaleLinear().domain([minConf, maxConf]).range(["#D85656", "#009429"])
 
@@ -367,7 +369,7 @@ const vizJSON = function (data) {
     const chart = d3.select("svg.timeline")
     let lastObs = null
     let dataElements = []
-
+    let count = 0;
     const radius = '6px';
     for (let d in data) {
         count += 1
