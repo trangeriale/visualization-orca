@@ -85,7 +85,7 @@ const vizJSON = function (data) {
         .attr('width', width)
         .attr('height', height)
 
-    const xAxisInit = d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%I:%M:%p'))
+    const xAxisInit = d3.axisBottom(dayTimeScale).tickFormat(d3.timeFormat('%H:%M'))
     const xAxis = pigeonPlot.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(${margin * 1 / 3}, ${height - margin})`)
@@ -158,6 +158,7 @@ const vizJSON = function (data) {
                 /*              /*        console.log(openPopover, "now") */
                 //console.log("close") //close popover if click outside of the datapoint or the popover */
                 //focus
+                console.log()
             }
         }
         const addPopover = d3.select("#pigeon-plot")
@@ -181,7 +182,7 @@ const vizJSON = function (data) {
         
         for a popover when click on a datapoint
         */
-        const audioElem = addPopover.append("audio").attr("src", audioUri).attr("controls", "true")
+        const audioElem = addPopover.append("audio").attr("controls", "true").append("source").attr("src", audioUri).attr("type", "audio/wav")
         openPopover = (addPopover._groups)[0][0]
     };
 
@@ -209,30 +210,13 @@ const vizJSON = function (data) {
                 .attr("fill", (d) => confidenceScale(d.whaleFoundConfidence))
                 .attr("fill-opacity", "0.8")
                 .style("stroke", "black")
+                .attr("tabindex", "0")
                 .style("stroke-opacity", "0.5")
                 .attr("data-playing", "false")
                 .on("click", (e) => {
-                    console.log(e.target.__data__.timestamp, "Time");
-                    console.log(e.target.__data__.id, "ID");
-                    const audio = new Audio(e.target.__data__.audioUri);
-                    //console.log("E page", e.pageX);
+                    e.target.style.border = "2px dashed red";
+                    console.log(e.target)
                     showPopover(e)
-                    //   const dataPoint = document.getElementById(`${e.target.__data__.timestamp}`)
-                    // console.log(dataPoint.dataset)
-                    /*                     if (e.target.dataset.playing === "false") {
-                                            console.log("waa")
-                                            audio.play();
-                                            e.target.dataset.playing = "true";
-                                        } else {
-                                            console.log(audio.pause());
-                                            console.log("pauseee");
-                                            e.target.dataset.playing = "false";
-                                        } */
-                    /*   e.target.parent.appendChild() */
-                    // const 
-                    /*           const dataPopover = document.createElement("div");
-                              dataPopover.classList.add("data-popover")
-                              dataPopover.appendChild() */
                 }),
             // .on("click", (e) => { console.log((new Date(e.srcElement.__data__.timestamp))) })
             update => update.call(
