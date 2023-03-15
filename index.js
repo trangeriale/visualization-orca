@@ -57,12 +57,6 @@ const vizJSON = function (data) {
     const confidenceExtent = d3.extent(data, d => d.whaleFoundConfidence);
 
     const sortedConfidence = data.map(d => d.whaleFoundConfidence).sort(d3.ascending);
-    /* 
-        const firstQuant = d3.quantileSorted(sortedConfidence, 0.25, d => d.whaleFoundConfidence);
-    
-        const secondQUant = d3.quantileSorted(sortedConfidence, 0.5, d => d.whaleFoundConfidence);
-    
-        const thirdQuant = d3.quantileSorted(sortedConfidence, 0.75, d => d.whaleFoundConfidence); */
 
     const dayTimeScale = d3.scaleTime().domain(timeDomain).range([margin, width - margin]).nice(); //cx
 
@@ -174,6 +168,7 @@ const vizJSON = function (data) {
             .style("border", "1px solid black")
             .style("background-color", "white")
             .style("border-radius", "1rem")
+            .style("z-index", 1)
             .style("border", "1px solid #D9D9D9")
             .style("box-shadow", "5px 5px 6px 3px rgba(0, 0, 0, 0.25)")
 
